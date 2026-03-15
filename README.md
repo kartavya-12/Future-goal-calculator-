@@ -1,6 +1,10 @@
 ## Future Goals Investment Calculator
 
 Full-stack financial education web app built with Next.js (frontend) and Node.js/Express/MySQL (backend).
+🔗 **Live URL**
+
+https://creative-prosperity-production.up.railway.app/
+
 
 ### Project structure
 
