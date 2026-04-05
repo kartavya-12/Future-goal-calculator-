@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import AccessibleSlider from "./AccessibleSlider";
+import { motion, AnimatePresence } from "framer-motion";
+import { SlidersHorizontal, ArrowRight } from "lucide-react";
 
 function findYearsToReachGoal({ monthlySIP, returnRate, targetFutureValue }) {
   const annualRate = returnRate / 100;
@@ -55,23 +57,23 @@ export default function WhatIfSimulator({ base, years }) {
       setInsight(
         `If you increase your SIP by ₹${(
           sipAdjustment * 1000
-        ).toLocaleString("en-IN")} you could potentially reach this goal about ${diff} years earlier (assuming returns stay the same).`
+        ).toLocaleString("en-IN")} you could potentially reach this goal about ${diff} years earlier.`
       );
       return;
     }
 
     if (timelineExtension > 0) {
       setInsight(
-        `If you are comfortable extending the goal by ${timelineExtension} years, you may be able to work with a lower monthly SIP for the same target value.`
+        `Extending the goal by ${timelineExtension} years may significantly lower your required monthly SIP for the same target value.`
       );
       return;
     }
 
     if (returnAdjustment > 0) {
       setInsight(
-        `If actual long-term returns are higher by ${returnAdjustment.toFixed(
+        `If long-term returns are higher by ${returnAdjustment.toFixed(
           1
-        )}% than your base assumption, your required SIP could be lower — but higher returns also usually involve higher risk.`
+        )}%, your required SIP could be lower — but remember, higher returns usually involve higher risk.`
       );
       return;
     }
@@ -86,59 +88,76 @@ export default function WhatIfSimulator({ base, years }) {
   return (
     <section
       aria-labelledby="what-if-heading"
-      className="bg-white rounded-xl shadow-md p-4 border border-gray-100"
+      className="glass-card p-5 lg:p-6 lg:col-span-2"
     >
-      <h2
-        id="what-if-heading"
-        className="text-sm font-semibold text-gray-900 mb-2"
-      >
-        What-if simulator
-      </h2>
-      <p className="text-xs text-neutral mb-3">
-        Adjust these assumptions to understand how they might impact your
-        plan.
+      <div className="flex items-center gap-2 mb-2">
+        <SlidersHorizontal className="w-5 h-5 text-purple-400" />
+        <h2
+          id="what-if-heading"
+          className="text-lg font-bold text-white tracking-wide"
+        >
+          What-If Simulator
+        </h2>
+      </div>
+      <p className="text-sm text-slate-400 mb-6">
+        Adjust these assumptions dynamically to see instantaneous impacts on your plan.
       </p>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <AccessibleSlider
           id="sipAdjustment"
-          label="Increase SIP (₹ per month)"
+          label="Increase SIP (₹/mo)"
           min={0}
           max={25}
           step={1}
           value={sipAdjustment}
           onChange={(e) => setSipAdjustment(Number(e.target.value))}
-          helperText="Each step represents ₹1,000."
+          helperText="Steps of ₹1,000"
           suffix="K"
         />
         <AccessibleSlider
           id="returnAdjustment"
-          label="Change in annual return (%)"
+          label="Adjust Annual Return"
           min={-5}
           max={5}
           step={0.5}
           value={returnAdjustment}
           onChange={(e) => setReturnAdjustment(Number(e.target.value))}
-          helperText="Illustrates impact of higher or lower returns."
+          helperText="Test risk/return variants"
           suffix="%"
         />
         <AccessibleSlider
           id="timelineExtension"
-          label="Extend timeline (years)"
+          label="Extend Timeline"
           min={0}
           max={10}
           step={1}
           value={timelineExtension}
           onChange={(e) => setTimelineExtension(Number(e.target.value))}
-          helperText="Longer timelines can reduce required SIP."
+          helperText="Increase compounding time"
           suffix=" yrs"
         />
       </div>
-      <p
-        className="mt-2 text-xs text-gray-800"
-        aria-live="polite"
-      >
-        {insight}
-      </p>
+
+      <AnimatePresence mode="wait">
+        <motion.div
+          key={insight}
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -5 }}
+          className="bg-surface-200/50 border border-purple-500/20 rounded-xl p-4 flex items-start gap-4"
+        >
+          <div className="mt-1 flex-shrink-0">
+            <ArrowRight className="w-4 h-4 text-purple-400" />
+          </div>
+          <p
+            className="text-sm text-sky-200 font-medium leading-relaxed"
+            aria-live="polite"
+          >
+            {insight}
+          </p>
+        </motion.div>
+      </AnimatePresence>
     </section>
   );
 }

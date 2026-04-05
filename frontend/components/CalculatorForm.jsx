@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { Calculator } from "lucide-react";
 import GoalInputs from "./GoalInputs";
 import ResultCards from "./ResultCards";
 import GoalChart from "./GoalChart";
@@ -145,85 +146,106 @@ export default function CalculatorForm() {
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-6"
+      className="grid grid-cols-1 lg:grid-cols-12 gap-8 relative"
       aria-describedby="calculator-disclaimer"
     >
-      <GoalInputs form={form} onChange={setForm} />
-
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mt-2">
-        <div className="text-xs text-neutral">
-          Fill in the details and click{" "}
-          <span className="font-semibold">Calculate SIP</span> to see how much
-          you may need to invest every month.
+      {/* Left Sidebar - Inputs */}
+      <div className="lg:col-span-4 space-y-6">
+        <GoalInputs form={form} onChange={setForm} />
+        
+        <div className="glass-card p-6 sticky top-[calc(100vh-160px)]">
+          <p className="text-sm text-slate-400 mb-4 text-center">
+            Ready to see your customized plan?
+          </p>
+          <motion.button
+            type="submit"
+            className="w-full flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-blue-600 to-primary px-6 py-4 text-sm font-bold text-white shadow-lg shadow-primary/30 hover:shadow-primary/50 hover:from-blue-500 hover:to-blue-700 transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-surface-200 focus-visible:ring-primary disabled:opacity-60 disabled:cursor-not-allowed"
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            disabled={loading}
+          >
+            <Calculator className="w-5 h-5" />
+            {loading ? "Computing Trajectory..." : "Calculate SIP Plan"}
+          </motion.button>
+          
+          <AnimatePresence>
+            {error && (
+              <motion.p
+                role="alert"
+                className="mt-4 text-sm text-center text-red-400 font-medium bg-red-400/10 py-2 px-3 rounded-lg border border-red-500/20"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+              >
+                {error}
+              </motion.p>
+            )}
+          </AnimatePresence>
         </div>
-        <motion.button
-          type="submit"
-          className="inline-flex items-center justify-center rounded-full bg-primary px-6 py-2 text-sm font-semibold text-white shadow-md hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-primary disabled:opacity-60 disabled:cursor-not-allowed"
-          whileTap={{ scale: 0.97 }}
+
+        <section
+          id="calculator-disclaimer"
+          className="mt-6 bg-surface-200/50 border border-white/5 rounded-xl p-4 shadow-sm"
+          aria-label="Important disclaimer"
         >
-          {loading ? "Calculating..." : "Calculate SIP"}
-        </motion.button>
+          <p className="text-[11px] text-slate-500 leading-relaxed italic">
+            This tool has been designed for information purposes only. Actual
+            results may vary depending on various factors involved in capital
+            market. Investor should not consider above as a recommendation for any
+            schemes of HDFC Mutual Fund. Past performance may or may not be
+            sustained in future and is not a guarantee of any future returns.
+          </p>
+        </section>
       </div>
 
-      <AnimatePresence>
-        {error && (
-          <motion.p
-            role="alert"
-            className="text-xs text-accent"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            {error}
-          </motion.p>
+      {/* Right Content - Results */}
+      <div className="lg:col-span-8">
+        {!results && (
+          <div className="h-full flex flex-col items-center justify-center min-h-[400px] glass-card border-dashed border-white/20">
+            <Calculator className="w-16 h-16 text-slate-600 mb-4" />
+            <h3 className="text-xl font-medium text-slate-400">Awaiting Input</h3>
+            <p className="text-sm text-slate-500 mt-2 max-w-sm text-center">
+              Configure your goal details on the left and calculate your SIP plan to see detailed visualizations and insights.
+            </p>
+          </div>
         )}
-      </AnimatePresence>
 
-      <AnimatePresence>
-        {results && (
-          <motion.div
-            key="results-section"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 8 }}
-            transition={{ duration: 0.3 }}
-            className="space-y-6"
-          >
-            <ResultCards results={results} years={form.years} />
+        <AnimatePresence>
+          {results && (
+            <motion.div
+              key="results-section"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="space-y-6 lg:space-y-8"
+            >
+              <ResultCards results={results} years={form.years} />
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
-              <GoalChart data={growthData} />
-              <InflationChart data={inflationData} />
-            </div>
+              <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+                <GoalChart data={growthData} />
+                <InflationChart data={inflationData} />
+              </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <InsightsPanel
-                results={results}
-                years={form.years}
-                goalLabel={form.goalName || form.goalType}
-              />
-              <WhatIfSimulator base={results} years={form.years} />
-              <GoalTimeline data={timeline} />
-            </div>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2 flex flex-col gap-6">
+                  <InsightsPanel
+                    results={results}
+                    years={form.years}
+                    goalLabel={form.goalName || form.goalType}
+                  />
+                  <WhatIfSimulator base={results} years={form.years} />
+                </div>
+                <div className="lg:col-span-1">
+                  <GoalTimeline data={timeline} />
+                </div>
+              </div>
 
-            <MultipleGoalsPlanner goals={goalsList} />
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      <section
-        id="calculator-disclaimer"
-        className="mt-4 bg-neutral/10 border border-neutral/40 rounded-md p-3"
-        aria-label="Important disclaimer"
-      >
-        <p className="text-[11px] text-gray-800 leading-relaxed">
-          This tool has been designed for information purposes only. Actual
-          results may vary depending on various factors involved in capital
-          market. Investor should not consider above as a recommendation for any
-          schemes of HDFC Mutual Fund. Past performance may or may not be
-          sustained in future and is not a guarantee of any future returns.
-        </p>
-      </section>
+              <MultipleGoalsPlanner goals={goalsList} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </form>
   );
 }

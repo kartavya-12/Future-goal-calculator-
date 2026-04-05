@@ -1,5 +1,6 @@
-import React from "react";
-import { motion } from "framer-motion";
+import React, { useEffect, useRef } from "react";
+import { motion, useInView, useAnimation, useSpring, useTransform } from "framer-motion";
+import { TrendingUp, Wallet, Coins, Rocket, Target } from "lucide-react";
 
 function formatCurrency(value) {
   if (value == null || Number.isNaN(value)) return "—";
@@ -10,78 +11,96 @@ function formatCurrency(value) {
   }).format(value);
 }
 
-export default function ResultCards({ results, years }) {
-  if (!results) {
-    return (
-      <section
-        aria-labelledby="results-heading"
-        className="mt-6"
-      >
-        <h2
-          id="results-heading"
-          className="sr-only"
-        >
-          Results
-        </h2>
-      </section>
-    );
-  }
+function AnimatedNumber({ value }) {
+  const ref = useRef(null);
+  const isInView = useInView(ref, { once: true });
+  
+  const springValue = useSpring(0, {
+    stiffness: 50,
+    damping: 20,
+    mass: 1
+  });
 
-  const { futureGoalValue, monthlySIP, totalInvestment, wealthGenerated } =
-    results;
+  const display = useTransform(springValue, (current) => formatCurrency(current));
+
+  useEffect(() => {
+    if (isInView && value) {
+      springValue.set(value);
+    }
+  }, [isInView, value, springValue]);
+
+  return <motion.span ref={ref}>{display}</motion.span>;
+}
+
+export default function ResultCards({ results, years }) {
+  if (!results) return null;
+
+  const { futureGoalValue, monthlySIP, totalInvestment, wealthGenerated } = results;
 
   const cards = [
     {
-      title: "Future goal cost (inflation-adjusted)",
-      value: formatCurrency(futureGoalValue),
-      description:
-        "Estimated cost of your goal when you actually need the money."
+      title: "Future Goal Value",
+      value: futureGoalValue,
+      icon: <Target className="w-5 h-5" />,
+      color: "text-blue-400",
+      bgBase: "bg-blue-500/10",
+      description: "Adjusted for inflation"
     },
     {
-      title: "Required monthly SIP",
-      value: formatCurrency(monthlySIP),
-      description: "Approximate monthly investment to stay on track."
+      title: "Required Monthly SIP",
+      value: monthlySIP,
+      icon: <Wallet className="w-5 h-5" />,
+      color: "text-green-400",
+      bgBase: "bg-green-500/10",
+      description: "Appx. monthly investment"
     },
     {
-      title: "Total amount invested",
-      value: formatCurrency(totalInvestment),
-      description: `Total money you invest over ${years} years.`
+      title: "Total Investment",
+      value: totalInvestment,
+      icon: <Coins className="w-5 h-5" />,
+      color: "text-purple-400",
+      bgBase: "bg-purple-500/10",
+      description: `Over ${years} years`
     },
     {
-      title: "Estimated wealth created",
-      value: formatCurrency(wealthGenerated),
-      description:
-        "Potential growth from compounding over the full investment period."
+      title: "Wealth Generated",
+      value: wealthGenerated,
+      icon: <TrendingUp className="w-5 h-5" />,
+      color: "text-amber-400",
+      bgBase: "bg-amber-500/10",
+      description: "Potential compounding growth"
     }
   ];
 
   return (
-    <section
-      aria-labelledby="results-heading"
-      className="mt-6"
-    >
-      <h2
-        id="results-heading"
-        className="text-lg font-semibold text-primary mb-3"
-      >
-        Summary
-      </h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-        {cards.map((card) => (
+    <section aria-labelledby="results-heading">
+      <h2 id="results-heading" className="sr-only">Summary</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6 mt-6 md:mt-0">
+        {cards.map((card, index) => (
           <motion.article
             key={card.title}
-            className="bg-white rounded-xl border border-gray-100 shadow-sm p-4"
-            initial={{ opacity: 0, y: 10 }}
+            className="glass-card glass-card-hover p-5 relative overflow-hidden group"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.25 }}
+            transition={{ duration: 0.4, delay: index * 0.1 }}
           >
-            <h3 className="text-sm font-semibold text-gray-900 mb-1">
-              {card.title}
-            </h3>
-            <p className="text-xl font-bold text-primary mb-1">
-              {card.value}
-            </p>
-            <p className="text-xs text-neutral">{card.description}</p>
+            {/* Background Accent */}
+            <div className={`absolute -right-4 -top-4 w-24 h-24 rounded-full ${card.bgBase} blur-2xl group-hover:blur-xl transition-all duration-500`} />
+            
+            <div className="relative z-10">
+              <div className="flex items-center gap-3 mb-3">
+                <div className={`p-2 rounded-lg bg-surface-100 border border-white/5 shadow-inner ${card.color}`}>
+                  {card.title === "Future Goal Value" ? <Rocket className="w-5 h-5" /> : card.icon}
+                </div>
+                <h3 className="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                  {card.title}
+                </h3>
+              </div>
+              <p className={`text-2xl lg:text-3xl font-bold tracking-tight mb-1 text-glow-primary text-white`}>
+                <AnimatedNumber value={card.value} />
+              </p>
+              <p className="text-xs text-slate-400">{card.description}</p>
+            </div>
           </motion.article>
         ))}
       </div>

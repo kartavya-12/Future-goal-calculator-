@@ -4,11 +4,13 @@ import {
   Pie,
   Cell,
   Tooltip,
-  Legend,
-  ResponsiveContainer
+  ResponsiveContainer,
+  Legend
 } from "recharts";
+import { motion } from "framer-motion";
+import { Layers } from "lucide-react";
 
-const PIE_COLORS = ["#224c87", "#22c55e", "#da3832", "#f59e0b", "#6366f1"];
+const PIE_COLORS = ["#38bdf8", "#818cf8", "#c084fc", "#fb7185", "#34d399"];
 
 function formatCurrency(value) {
   if (value == null || Number.isNaN(value)) return "—";
@@ -19,6 +21,20 @@ function formatCurrency(value) {
   }).format(value);
 }
 
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    return (
+      <div className="bg-surface-200/95 backdrop-blur-xl border border-white/10 p-3 rounded-lg shadow-xl">
+        <p className="text-white font-semibold text-sm mb-1">{payload[0].name}</p>
+        <span className="text-sky-300 font-bold">
+          {formatCurrency(payload[0].value)} / month
+        </span>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function MultipleGoalsPlanner({ goals }) {
   const activeGoals = goals.filter(
     (g) => g.results && g.results.monthlySIP > 0
@@ -28,17 +44,19 @@ export default function MultipleGoalsPlanner({ goals }) {
     return (
       <section
         aria-labelledby="multi-goals-heading"
-        className="bg-white rounded-xl shadow-md p-4 border border-gray-100"
+        className="glass-card p-5 lg:p-6"
       >
-        <h2
-          id="multi-goals-heading"
-          className="text-sm font-semibold text-gray-900 mb-2"
-        >
-          Multiple goals planner
-        </h2>
-        <p className="text-xs text-neutral">
-          Add calculations for more than one goal to see how your total
-          monthly SIP is distributed.
+        <div className="flex items-center gap-2 mb-2">
+          <Layers className="w-5 h-5 text-indigo-400" />
+          <h2
+            id="multi-goals-heading"
+            className="text-lg font-bold text-white tracking-wide"
+          >
+            Portfolio Planner
+          </h2>
+        </div>
+        <p className="text-sm text-slate-400">
+          Compute multiple goals to activate your aggregated portfolio view and SIP distribution breakdown.
         </p>
       </section>
     );
@@ -57,44 +75,65 @@ export default function MultipleGoalsPlanner({ goals }) {
   return (
     <section
       aria-labelledby="multi-goals-heading"
-      className="bg-white rounded-xl shadow-md p-4 border border-gray-100"
+      className="glass-card p-5 lg:p-6 relative overflow-hidden"
     >
-      <h2
-        id="multi-goals-heading"
-        className="text-sm font-semibold text-gray-900 mb-2"
-      >
-        Multiple goals planner
-      </h2>
-      <p className="text-xs text-neutral mb-2">
-        Total monthly SIP across all goals:{" "}
-        <span className="font-semibold text-primary">
+      {/* Decorative gradient */}
+      <div className="absolute -left-16 -bottom-16 w-48 h-48 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none" />
+
+      <div className="flex items-center gap-2 mb-2 relative z-10">
+        <Layers className="w-5 h-5 text-indigo-400" />
+        <h2
+          id="multi-goals-heading"
+          className="text-lg font-bold text-white tracking-wide"
+        >
+          Portfolio Planner
+        </h2>
+      </div>
+      <p className="text-sm text-slate-400 mb-6 relative z-10">
+        Total Aggregate SIP Required:{" "}
+        <span className="font-bold text-sky-300 text-lg ml-1">
           {formatCurrency(totalMonthlySIP)}
         </span>
       </p>
-      <div className="h-64">
+
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.4 }}
+        className="h-64 relative z-10"
+      >
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
               data={pieData}
               dataKey="value"
               nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={60}
               outerRadius={80}
-              label
+              paddingAngle={5}
+              stroke="none"
+              labelLine={false}
             >
               {pieData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={PIE_COLORS[index % PIE_COLORS.length]}
+                  className="hover:opacity-80 transition-opacity duration-300 cursor-pointer"
                 />
               ))}
             </Pie>
-            <Tooltip
-              formatter={(value) => formatCurrency(value)}
+            <Tooltip content={<CustomTooltip />} />
+            <Legend 
+              verticalAlign="middle" 
+              align="right"
+              layout="vertical"
+              wrapperStyle={{ fontSize: '12px', color: '#cbd5e1' }}
             />
-            <Legend />
           </PieChart>
         </ResponsiveContainer>
-      </div>
+      </motion.div>
     </section>
   );
 }
