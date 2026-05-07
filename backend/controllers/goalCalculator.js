@@ -1,4 +1,3 @@
-const { pool } = require("../database/db");
 
 function calculateFutureGoalValue(cost, years, inflation) {
   const inflationRate = inflation / 100;
@@ -68,31 +67,7 @@ async function calculateGoal(req, res) {
       totalInvestment
     );
 
-    try {
-      const connection = await pool.getConnection();
-      try {
-        await connection.query(
-          `INSERT INTO calculations 
-            (goalType, goalName, cost, years, inflation, returnRate, futureGoalValue, monthlySIP) 
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-          [
-            goalType,
-            goalName || null,
-            numericCost,
-            numericYears,
-            numericInflation,
-            numericReturnRate,
-            futureGoalValue,
-            monthlySIP
-          ]
-        );
-      } finally {
-        connection.release();
-      }
-    } catch (dbErr) {
-      // Log but don't fail the API for db issues
-      console.error("DB error while saving calculation:", dbErr.message);
-    }
+
 
     return res.json({
       futureGoalValue,

@@ -1,1 +1,8 @@
 node_modules
+.next/
+frontend/.next/
+my-app/.next/
+*.env
+*.env.local
+.env
+.env.local

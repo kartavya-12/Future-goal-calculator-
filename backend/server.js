@@ -1,7 +1,6 @@
 const express = require("express");
 const cors = require("cors");
 const bodyParser = require("body-parser");
-const { initSchema } = require("./database/db");
 const calculatorRoutes = require("./routes/calculator");
 require("dotenv").config();
 
@@ -50,15 +49,8 @@ app.use((err, req, res, next) => {
 });
 
 /*
-  Start server after DB schema is ready
+  Start server
 */
-initSchema()
-  .then(() => {
-    app.listen(PORT, () => {
-      console.log(`🚀 API server listening on port ${PORT}`);
-    });
-  })
-  .catch((err) => {
-    console.error("❌ Failed to initialize database schema:", err);
-    process.exit(1);
-  });
+app.listen(PORT, () => {
+  console.log(`🚀 API server listening on port ${PORT}`);
+});
